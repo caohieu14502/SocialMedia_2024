@@ -2,7 +2,6 @@ import { UserAuth } from "../context/AuthContext"
 
 /* eslint-disable react/prop-types */
 const Message = (props) => {
-    console.log(props)
     const message = props.message
 
     const {user} = UserAuth()

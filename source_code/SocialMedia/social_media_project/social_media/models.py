@@ -13,6 +13,7 @@ class UserFollowing(models.Model): #bang trung gian
     follower = models.ForeignKey("User", related_name="follower", on_delete=models.CASCADE)
     following = models.ForeignKey("User", related_name="following", on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
+    active = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ('follower', 'following')
@@ -35,6 +36,7 @@ class Tag(BaseModel):
 class Post(BaseModel):
     content = models.TextField(max_length=1000, null=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    media_type = models.CharField(max_length=100, null=False, default="Images") #'Images' or 'Video'
     tags = models.ManyToManyField('Tag')
 
     def __str__(self):
@@ -42,12 +44,15 @@ class Post(BaseModel):
 
 
 class PostMedia(BaseModel):
-    media_type = models.CharField(max_length=100, null=False)
-    media_url = models.CharField(max_length=100, null=False)
+    media_url = CloudinaryField('media_url')
+    order = models.SmallIntegerField()
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.media_type
+        return self.media_url
+
+    class Meta:
+        unique_together = ('order', 'post')
 
 
 class Interaction(BaseModel):
@@ -101,3 +106,6 @@ class Message(BaseModel):
 
     def __str__(self):
         return self.content
+
+    class Meta:
+        ordering = ['created_date']

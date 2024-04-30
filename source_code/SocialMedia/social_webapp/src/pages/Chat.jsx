@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react"
 import { authApis, endpoints } from "../configs/Apis"
 import ChatRoom from "../components/ChatRoom"
+import { useLocation } from "react-router-dom";
 const Chat = () => {
+  const {state} = useLocation();
   const [groupChats, setGroupChats] = useState(null)
   const [groupChat, setGroupChat] = useState(null)
 
@@ -9,8 +11,9 @@ const Chat = () => {
     const process = async () => {
       try {
           let { data } = await authApis().get(endpoints['group_chats']);
-          
           setGroupChats(data)
+          if(state!==null)
+          setGroupChat(<ChatRoom id={state.groupChatId}/>)
       } catch (ex) {
           console.log(ex)
       }
@@ -27,7 +30,7 @@ const Chat = () => {
 
   return (
     <>
-      <div className="flex h-full">
+      <div className="flex h-full overflow-hidden">
         <ul className="menu bg-base-200 w-56 rounded-box block h-full">
         {groupChats.map((f, index) => {
               return(<li key={index} onClick={()=>chatbox_handle(f.id)}><a>{f.name}</a></li>)

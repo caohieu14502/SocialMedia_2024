@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "cloudinary",
     "oauth2_provider",
-    'corsheaders'
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -123,8 +123,14 @@ AUTH_USER_MODEL = 'social_media.User'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'social_media.authenticators.CustomOAuth2Authentication'
     )
 }
+
+# AUTHENTICATION_BACKENDS = (
+    # 'social_media.authenticators.CustomOAuth2Backend',
+    # Other authentication backends (if needed)
+# )
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
@@ -170,6 +176,7 @@ CHANNEL_LAYERS = {
     },
 }
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880
 
 
 # ClientID: SuBIKVrz8fi0vfrClK0ylXeUHRC1fYAq4ox7xKgV

@@ -1,18 +1,29 @@
-import { useContext, useEffect, useState } from "react";
+import { useState } from "react";
 import { UserAuth } from "../context/AuthContext"
 import { useNavigate } from "react-router-dom";
 import Apis, { authApis, endpoints } from "../configs/Apis";
 import cookie from "react-cookies"
-import MyUserContext from "../context/MyUserContext";
-// import { w3cwebsocket } from "websocket";
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
+  
     const nav = useNavigate()
     const {user, dispatch} = UserAuth()
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    
+    const loginG =  async (tokenResponse) => {
+        console.log(tokenResponse)
+        cookie.save("token", {access_token: tokenResponse.credential});
+        let {data} = await authApis().get(endpoints['current-user']);
+        cookie.save("user", data);
 
+        dispatch({
+            "type": "login",
+            "payload": data
+        });
+      }
 
     const login = (evt) => {
         evt.preventDefault();
@@ -40,37 +51,6 @@ const Login = () => {
     }   
 
     if(user) nav("/")
-    // useEffect(() => {
-    //   if(currentUser) nav("/home")
-    // }, [currentUser])
-
-    // const [q] = useSearchParams();
-    // if (user !== null) {
-    //     let next = q.get("next") || "/";
-    //     return <Navigate to={next} />
-    // }
-
-    
-    // var client = new w3cwebsocket('ws://127.0.0.1:8000/ws/notification/'); //gets room_name from the state and connects to the backend server 
-    
-    // useEffect(() => {
-    //     client.onopen = () => {
-    //         console.log("WebSocket Client Connected");
-    //     };
-    //     client.onmessage = (message) => {
-    //         const dataFromServer = JSON.parse(message.data);
-    //         console.info(dataFromServer)
-    //     };
-    // }, [])
-    
-    
-    const handleLogin = async () => {
-      try {
-        await signInWithGoogle();
-      } catch (err) {
-        console.log(err)
-      }
-    }
 
 
     return (
@@ -85,7 +65,8 @@ const Login = () => {
               <p className="py-6 text-center">Amotion là 1 mạng xã hội để chia sẻ những khoảnh khắc tuyệt đẹp mà bạn đã capture lại. Hãy để mọi người cùng tận hưởng vẻ đẹp mà bạn đã trải nghiệm</p>
               <div className="hero-content text-center">
                   <div className="max-w-md">
-                  <button onClick={handleLogin} className="btn btn-primary">Login with Google</button>
+                  {/* <button onClick={loginG} className="btn btn-primary">Login with Google</button> */}
+                  <GoogleLogin   onSuccess={loginG} />
                   </div>
               </div>
             </div>

@@ -1,12 +1,8 @@
 import { useState } from "react"
-import { dbFirebase } from "../firebase";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { UserAuth } from "../context/AuthContext";
 import { authApis, endpoints } from "../configs/Apis";
 
 const SendMessage = ({group_id}) => {
     const [value, setValue] = useState("");
-    const {currentUser} = UserAuth()
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
@@ -17,21 +13,11 @@ const SendMessage = ({group_id}) => {
         }
         
         try {
-            // const {uid, displayName, photoURL} = currentUser
-
-            // await addDoc(collection(dbFirebase, "messages"), {
-            //     text: value,
-            //     name: displayName,
-            //     avatar: photoURL,
-            //     uid: uid,
-            //     createdAt: serverTimestamp()
-            // })
             await authApis().post(endpoints['group_chat-messages'](group_id), {
                 "content": value,
                 "group": group_id
             });
 
-            
         } catch (error) {
             console.log(error)
         }

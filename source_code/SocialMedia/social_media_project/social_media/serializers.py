@@ -1,4 +1,5 @@
-from social_media.models import User, Post, Comment, ReplyComment, PostMedia, Message, UserGroupChat, ChatGroup
+from django.db.models import Count, Q
+from social_media.models import User, Post, Comment, ReplyComment, PostMedia, Message, UserGroupChat, ChatGroup, UserFollowing
 from rest_framework import serializers
 from social_media_project.settings import CLOUDINARY_ROOT_URL
 
@@ -36,32 +37,71 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
+class UserDetailSerializer(UserSerializer):
+    followed = serializers.SerializerMethodField()
+    total_followers = serializers.SerializerMethodField()
+    total_followings = serializers.SerializerMethodField()
+    total_posts = serializers.SerializerMethodField()
+
+    def get_followed(self, user):
+        request = self.context.get('request')
+        if request.user.is_authenticated:
+            return UserFollowing.objects.filter(follower=request.user, following=user, active=True).exists()
+
+    def get_total_posts(self, user):
+        request = self.context.get('request')
+        if request.user.is_authenticated:
+            return Post.objects.filter(user=request.user).count()
+
+    def get_total_followers(self, user):
+        request = self.context.get('request')
+        if request.user.is_authenticated:
+            return UserFollowing.objects.filter(following=request.user).count()
+
+    def get_total_followings(self, user):
+        request = self.context.get('request')
+        if request.user.is_authenticated:
+            return UserFollowing.objects.filter(follower=request.user).count()
+
+    class Meta:
+        model = UserSerializer.Meta.model
+        fields = ['id', 'first_name', 'last_name', 'email', 'username',
+                  'avatar_url', 'followed', 'cover', 'total_followers',
+                  'total_posts', 'total_followings']
+
+
 class PostMediaSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostMedia
-        fields = ['id', 'media_type', 'media_url']
+        fields = ['id', 'media_url', 'order']
 
 
 class PostSerializer(serializers.ModelSerializer):
-    post_media_set = PostMediaSerializer(many=True)
-    user = UserSerializer()
+    post_media = PostMediaSerializer(many=True, read_only=True)
+    uploaded_images = serializers.ListField(
+        child=serializers.FileField(max_length=1000000, allow_empty_file=False, use_url=False),
+        write_only=True
+    )
+    user = UserSerializer(required=False)
 
     class Meta:
         model = Post
-        fields = ['id', 'content', 'user', 'created_date']
+        fields = ['id', 'content', 'user', 'created_date', 'media_type', 'uploaded_images']
         extra_kwargs = {
             'user': {
                 'read_only': True
-            }
+            },
         }
 
     def create(self, validated_data):
         data = validated_data.copy()
-
-        post = Post(user=self.context["request"].user, **data)
-        post.save()
-
-        return post
+        print('get in')
+        uploaded_data = data.pop('uploaded_images')
+        print(uploaded_data)
+        new_post = Post.objects.create(user=self.context["request"].user, **data)
+        for index, uploaded_item in enumerate(uploaded_data):
+            PostMedia.objects.create(post=new_post, media_url=uploaded_item, order=index)
+        return new_post
 
 
 class PostDetailSerializer(PostSerializer):
@@ -70,7 +110,7 @@ class PostDetailSerializer(PostSerializer):
     def get_liked(self, post):
         request = self.context.get('request')
         if request.user.is_authenticated:
-            return post.like_set.filter(active=True).exists()
+            return post.like_set.filter(active=True, user=request.user).exists()
 
     class Meta:
         model = PostSerializer.Meta.model

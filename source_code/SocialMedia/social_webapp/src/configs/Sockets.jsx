@@ -3,7 +3,8 @@ import cookie from "react-cookies";
 
 
 export const ws_endpoints = {
-    'notification': (userId) => `/notification/${userId}`
+    'notification': (userId) => `/notification/${userId}`,
+    'chat': (groupId) => `/chat/${groupId}`
 }
 
 const ws = (endpoints) => {

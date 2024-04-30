@@ -10,11 +10,14 @@ export const endpoints = {
     'group_chats': '/group-chats/',
     'group_chat-messages': (groupId) => `/group-chats/${groupId}/messages/`,
     'register': '/users/',
-    'like': (postId) => `/posts/${postId}/likes/`
+    'like': (postId) => `/posts/${postId}/likes/`,
+    'profile': (userId) => `/users/${userId}/`,
+    'follow': (userId) => `/users/${userId}/follow/`,
+    'userPosts': (userId) => `/users/${userId}/posts/`,
+    'users': '/users/'
 }
 
 export const authApis = () => {
-    console.log(cookie.load("token"))
     return axios.create({
         baseURL: "http://localhost:8000",
         headers: {
