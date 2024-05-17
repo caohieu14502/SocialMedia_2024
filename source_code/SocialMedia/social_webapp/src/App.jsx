@@ -10,6 +10,10 @@ import Profile from "./pages/Profile"
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import MyComponent from "./pages/Testing"
 import Searching from "./pages/Searching"
+import 'lightgallery/css/lightgallery.css';
+import 'lightgallery/css/lg-zoom.css';
+import 'lightgallery/css/lg-thumbnail.css';
+
 
 function App() {
 

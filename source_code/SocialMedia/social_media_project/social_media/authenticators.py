@@ -25,10 +25,10 @@ class CustomOAuth2Authentication(TokenAuthentication):
                     user.save()
 
                 return user, idinfo
-            except ValueError as e:
+            except KeyError as e:
                 print('Error Authenticators.py\n')
                 print(e)
-                return None
+                return user
 
 
 # class CustomOAuth2Backend(OAuth2Backend):

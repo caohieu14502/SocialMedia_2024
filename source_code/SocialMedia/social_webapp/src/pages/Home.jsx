@@ -1,48 +1,61 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Post from "../components/Post"
-import { useSearchParams } from "react-router-dom";
 import { authApis, endpoints } from "../configs/Apis";
 import { CreatePost } from "../components/CreatePost";
 import { UserAuth } from "../context/AuthContext";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 const Home = () => {
   const {user, } = UserAuth();
-  const [posts, setPosts] = useState(null)
-  const [q] = useSearchParams();
+  const [posts, setPosts] = useState([])
+  const [page, setPage] = useState(null)
+  const endPage = useRef()
+  const [isBottom, setIsBottom] = useState(false)
 
-
-  useEffect(() => {
-    const loadPosts = async () => {
-      try {
-          let e = endpoints['posts'];
-
-          let tagId = q.get("tagId");
-          if (tagId !== null && tagId !== "") {
-              e = `${e}?tagId=${tagId}`;
-          } else {
-              let kw = q.get("kw");
-              if (kw !== null && kw !== "") 
-                  e = `${e}?kw=${kw}`;
-          }
-
-          let res = await authApis().get(e);
-          setPosts(res.data.results)
-      } catch (ex) {
-          console.error(ex);
+  const deleteHandle = async (id, index) => {
+    if(confirm('Bạn có chắc muốn xoá?') == true) {
+      let res= await authApis().delete(endpoints['postDetails'](id), {
+          "post": id
+      });
+      if (res.status === 204) {
+        setPosts([...posts.slice(0,index), ...posts.slice(index+1)])
       }
+    }
+}
+
+  const loadPosts = async (url) => {
+    try {
+        let res = await authApis().get(url);
+        let {results, ...rest} = res.data;
+        setPage({page, ...rest})
+        console.log(page)
+        setPosts([...posts, ...results])
+        if(page !== null)
+        if(page.previous !== null)
+          setIsBottom(true)
+      } catch (ex) {
+        console.error(ex);
+    }
+}
+  useEffect(() => {
+    let e = `${endpoints['posts']}?page=1`;
+    loadPosts(e);
+  }, [])
+
+  const scrollToBottom = () => {
+    if(page !== null)
+    endPage.current.scrollIntoView({behavior: "smooth"})
   }
 
-  loadPosts();
-  }, [q])
+  useEffect(scrollToBottom, [isBottom])
   
-  if(posts === null) 
+  if(posts.length === 0) 
     return <><div>Bạn chưa follow ai cả! Hãy follow để xem bài viết của họ!</div></>
 
   const modal_handle = (e) => {
     e.preventDefault();
     document.getElementById('my_modal_3').showModal()
   }
-
 
   return (
     <>
@@ -60,10 +73,23 @@ const Home = () => {
           <CreatePost/>
         </dialog>
     </div>
-    <div className="containerWrap">
-      {posts.map(p =>
-        <Post key={p.id} style={1} post={p} />
-      )}
+    <div className="containerWrap z-10">
+    <InfiniteScroll
+        dataLength={posts.length}
+        next={()=>loadPosts(page.next)}
+        hasMore={page.next!==null}
+        loader={<h4>Loading...</h4>}
+        endMessage={<>
+          <br/>
+          <div className="py-8 text-center">Bạn đã xem hết bài viết</div>
+        </>}
+      >
+            {posts.map((p, index) =>{
+              return(<Post key={p.id} post={p} user={user} deleteHandle={()=> deleteHandle(p.id, index)} />)
+            }
+            )}
+    </InfiniteScroll>
+    <div ref={endPage}></div>
     </div>
     </>
   )

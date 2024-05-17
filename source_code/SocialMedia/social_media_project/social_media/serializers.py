@@ -38,10 +38,10 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserDetailSerializer(UserSerializer):
-    followed = serializers.SerializerMethodField()
-    total_followers = serializers.SerializerMethodField()
-    total_followings = serializers.SerializerMethodField()
-    total_posts = serializers.SerializerMethodField()
+    followed = serializers.SerializerMethodField(read_only=True)
+    total_followers = serializers.SerializerMethodField(read_only=True)
+    total_followings = serializers.SerializerMethodField(read_only=True)
+    total_posts = serializers.SerializerMethodField(read_only=True)
 
     def get_followed(self, user):
         request = self.context.get('request')
@@ -71,13 +71,20 @@ class UserDetailSerializer(UserSerializer):
 
 
 class PostMediaSerializer(serializers.ModelSerializer):
+    full_url = serializers.SerializerMethodField()
+
+    def get_full_url(self, obj):
+        if obj.media_url and obj.post.media_type == "Images":
+            return f"{CLOUDINARY_ROOT_URL}/{obj.media_url}"
+        return CLOUDINARY_ROOT_URL
+
     class Meta:
         model = PostMedia
-        fields = ['id', 'media_url', 'order']
+        fields = ['id', 'full_url', 'order', 'media_url']
 
 
 class PostSerializer(serializers.ModelSerializer):
-    post_media = PostMediaSerializer(many=True, read_only=True)
+    post_media = PostMediaSerializer(many=True, source='post_media_set', read_only=True)
     uploaded_images = serializers.ListField(
         child=serializers.FileField(max_length=1000000, allow_empty_file=False, use_url=False),
         write_only=True
@@ -86,7 +93,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'content', 'user', 'created_date', 'media_type', 'uploaded_images']
+        fields = ['id', 'content', 'user', 'created_date', 'media_type', 'uploaded_images', 'post_media']
         extra_kwargs = {
             'user': {
                 'read_only': True
@@ -106,15 +113,23 @@ class PostSerializer(serializers.ModelSerializer):
 
 class PostDetailSerializer(PostSerializer):
     liked = serializers.SerializerMethodField()
+    count_likes = serializers.SerializerMethodField()
+    count_comments = serializers.SerializerMethodField()
 
     def get_liked(self, post):
         request = self.context.get('request')
         if request.user.is_authenticated:
             return post.like_set.filter(active=True, user=request.user).exists()
 
+    def get_count_likes(self, post):
+        return post.like_set.filter(active=True).count()
+
+    def get_count_comments(self, post):
+        return post.comment_set.filter(active=True).count()
+
     class Meta:
         model = PostSerializer.Meta.model
-        fields = PostSerializer.Meta.fields + ['liked',
+        fields = PostSerializer.Meta.fields + ['liked', 'count_likes', 'count_comments'
                                                   # 'media',
                                                   # 'watched'
                                                   ]
@@ -123,10 +138,14 @@ class PostDetailSerializer(PostSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+    count_replies = serializers.SerializerMethodField(read_only=True)
+
+    def get_count_replies(self, comment):
+        return comment.replycomment_set.count()
 
     class Meta:
         model = Comment
-        fields = ['id', 'content', 'user', 'created_date']
+        fields = ['id', 'content', 'user', 'created_date', 'count_replies']
 
 
 class ReplyCommentSerializer(serializers.ModelSerializer):
@@ -137,12 +156,44 @@ class ReplyCommentSerializer(serializers.ModelSerializer):
         fields = ['id', 'content', 'user', 'created_date']
 
 
+class UserChatGroupSerializer(serializers.ModelSerializer):
+    avatar_url = serializers.SerializerMethodField(method_name="get_avatar_url")
+
+    def get_avatar_url(self, obj):
+        if obj.avatar:
+            return f"{CLOUDINARY_ROOT_URL}/{obj.avatar}"
+        return ""
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'avatar_url']
+
+
 class ChatGroupSerializer(serializers.ModelSerializer):
-    members = UserSerializer(many=True)
+    members_info = serializers.SerializerMethodField(read_only=True)
+    members = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), write_only=True)
+
+    def get_members_info(self, group):
+        ug = UserGroupChat.objects.filter(~Q(user=self.context["request"].user), group=group)
+        return UserSerializer(ug.first().user).data
 
     class Meta:
         model = ChatGroup
-        fields = ['id', 'name', 'members', 'last_active']
+        fields = ['id', 'name', 'members', 'last_active', 'members_info']
+
+    def create(self, validated_data):
+        data = validated_data.copy()
+        group_set = ChatGroup.objects.filter(
+            usergroupchat__user=data["members"][0], name=data["name"]
+        ).filter(
+            usergroupchat__user=data["members"][1]
+        ).distinct()
+        group = group_set.first()
+        if not group:
+            group = ChatGroup.objects.create(name=data["name"])
+            UserGroupChat.objects.create(group=group, user=data["members"][0])
+            UserGroupChat.objects.create(group=group, user=data["members"][1])
+        return group
 
 
 class UserGroupChatSerializer(serializers.ModelSerializer):

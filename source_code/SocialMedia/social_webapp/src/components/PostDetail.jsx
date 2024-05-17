@@ -13,7 +13,6 @@ export const PostDetail = ({post}) => {
         const loadComments = async () => {
             let { data } = await authApis().get(endpoints['comments'](post.id));
             setComments(data);
-            console.log(comments)
         }
 
         loadComments();
@@ -21,11 +20,11 @@ export const PostDetail = ({post}) => {
 
     const comment_handle = () => {
         const process = async () => {
+            let formData = new FormData()
+            formData.append("content", content)
+            formData.append("post", post.id)
             try {
-                let { data } = await authApis().post(endpoints['comments'](post.id), {
-                    "content": content,
-                    "post": post.id
-                });
+                let { data } = await authApis().post(endpoints['comments'](post.id), formData);
                 
                 setComments([data, ...comments])
             } catch (ex) {
@@ -40,7 +39,7 @@ export const PostDetail = ({post}) => {
     return(
         <>
         {/* You can open the modal using document.getElementById('ID').showModal() method */}
-            <div className="modal-box w-11/12 max-w-5xl h-5/6">
+            <div className="modal-box cursor-default w-11/12 max-w-5xl h-5/6">
                 <form method="dialog">
                 {/* if there is a button in form, it will close the modal */}
                 <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
@@ -56,11 +55,11 @@ export const PostDetail = ({post}) => {
                             <div className="chat chat-start">
                                 <div className="chat-image avatar">
                                     <div className="w-10 rounded-full">
-                                    <img alt="Tailwind CSS chat bubble component" src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+                                    <img alt="Tailwind CSS chat bubble component" src={post.user.avatar_url} />
                                     </div>
                                 </div>
                                 <div className="chat-header">
-                                    Obi-Wan Kenobi
+                                    {post.user.username}
                                 </div>
                                 <time className="text-s opacity-50 pl-4">12:45</time>
                             </div>
@@ -72,7 +71,7 @@ export const PostDetail = ({post}) => {
                                 return(<Comment key={c.id} comment={c}/>)
                         })}
 
-                        <div className="flex justify-center justify-self-end items-center">
+                        <div className="flex justify-center justify-self-end items-center cursor-pointer">
                             <input type="text" placeholder="Drop your comment" className="input input-bordered input-primary w-full max-w-xs" value={content} onChange={e => setContent(e.target.value)} />
                             <div className="pl-4" onClick={comment_handle}>
                                 <svg fill="blue"  height="30px" width="30px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" 

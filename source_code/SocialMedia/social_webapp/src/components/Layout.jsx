@@ -10,7 +10,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const Layout = () => {
     const {user} = UserAuth()
     const { lastJsonMessage } = useWebSocket(ws(ws_endpoints["notification"](user.id)));
-  
+
     useEffect(() => {
       if(lastJsonMessage !== null && lastJsonMessage.type==="notify")
         toast(lastJsonMessage.message.content);

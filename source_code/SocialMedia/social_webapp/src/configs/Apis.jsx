@@ -5,6 +5,7 @@ export const endpoints = {
     'posts': '/posts/',
     'postDetails': (postId) => `/posts/${postId}/`,
     'comments': (postId) => `/posts/${postId}/comments/`,
+    'reply': (commentId) => `/comments/${commentId}/replies/`,
     'login': '/o/token/',
     'current-user': '/users/current_user/',
     'group_chats': '/group-chats/',

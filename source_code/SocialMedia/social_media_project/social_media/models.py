@@ -37,6 +37,7 @@ class Post(BaseModel):
     content = models.TextField(max_length=1000, null=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     media_type = models.CharField(max_length=100, null=False, default="Images") #'Images' or 'Video'
+    status = models.CharField(null=True, max_length=50)
     tags = models.ManyToManyField('Tag')
 
     def __str__(self):
@@ -44,9 +45,9 @@ class Post(BaseModel):
 
 
 class PostMedia(BaseModel):
-    media_url = CloudinaryField('media_url')
+    media_url = CloudinaryField('media_url', resource_type="auto",)
     order = models.SmallIntegerField()
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='post_media_set')
 
     def __str__(self):
         return self.media_url
@@ -65,11 +66,14 @@ class Interaction(BaseModel):
 class Comment(Interaction):
     content = models.CharField(null=False, max_length=255)
     post = models.ForeignKey(Post, on_delete=models.CASCADE, null=False)
+    status = models.CharField(null=True, max_length=50)
+
 
 
 class ReplyComment(Interaction):
     content = models.TextField(null=False)
     parent = models.ForeignKey(Comment, on_delete=models.CASCADE, null=False)
+    status = models.CharField(null=True, max_length=50)
 
 
 class Like(Interaction):
@@ -82,12 +86,13 @@ class Like(Interaction):
 
 
 class Notification(BaseModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=False)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, null=False)
+    count = models.IntegerField(default=0)
     content = models.CharField(max_length=100)
     
 
 class ChatGroup(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, default='Duo')
     members = models.ManyToManyField(User, through='UserGroupChat')
     last_active = models.DateTimeField(auto_now=True)
 

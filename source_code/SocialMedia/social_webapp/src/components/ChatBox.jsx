@@ -36,25 +36,6 @@ const ChatBox = ({group_id}) => {
 
     useEffect(scrollToBottom, [messages])
 
-    // useEffect(() => {
-    //     const q = query(
-    //         collection(dbFirebase, "messages"), // messages la collection id
-    //         orderBy("createdAt"),
-    //         limit(50)
-    //     );
-    //     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-    //         const messages = [];
-    //         querySnapshot.forEach((doc) => {
-    //             messages.push({...doc.data(), id: doc.id});
-    //         });
-    //         setMessages(messages)
-    //     });
-
-    //     return () => unsubscribe
-    // }, [])
-
-
-
     return (
         <div className="pb-36 pt-20 h-[600px] mx-5 overflow-auto">
             {messages.map((mes) =>

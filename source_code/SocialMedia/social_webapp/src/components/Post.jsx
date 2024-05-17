@@ -8,33 +8,14 @@ import ws, { ws_endpoints } from "../configs/Sockets"
 import { PostDetail } from "./PostDetail"
 import { authApis, endpoints } from "../configs/Apis"
 import Moment from 'react-moment';
+import PostMedia from "./PostMedia"
 
-const Post = ({style, post}) => {
+const Post = ({post, user, deleteHandle}) => {
     const [isLiked, setIsLiked] = useState(post.liked)
-    var user = post.user // thực ra là 
-    let image_display = "carousel-start"
-    let message= "";
-    switch(style) {
-        case 1:
-            image_display = "carousel-vertical h-96";
-            break;
-        case 2:
-            image_display = "carousel-center";
-            break;
-        case 3:
-            image_display = "carousel-center max-w-md p-4 space-x-4 bg-neutral";
-            break;
-        }
 
-    // const likeHandle = async () => {
-        // var client = await ws(ws_endpoints["notification"](user))
-        // if(!isLiked)
-        //    client.onopen = () => client.send(JSON.stringify({
-        //         "type": "post_noti",
-        //         "message": " has liked your post"
-        //     }))
-        // setIsLiked(!isLiked)
-    // }
+    const reportHandle = async () => {
+        console.log('Oke')
+    }
     const likeHandle = () => {
         const process = async () => {
             try {
@@ -53,7 +34,7 @@ const Post = ({style, post}) => {
 
     return (
         <>
-            <hr className="bg-slate-200 my-4 w-[80%]"/>
+            <hr className="bg-slate-200 my-4 w-[896px]"/>
             <div className="chat chat-start">
                 <div className="chat-image avatar">
                     <div className="w-10 rounded-full">
@@ -69,47 +50,50 @@ const Post = ({style, post}) => {
                     </Moment>
                     </time>
             </div>
+            <div className="relative w-full z-10">
+                <div className="dropdown dropdown-bottom dropdown-end absolute right-0 bottom-0 z-10">
+                    <div tabIndex={0} role="button" className="btn m-1">...</div>
+                    <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                        {post.user.id===user.id?<li><a onClick={deleteHandle}>Xoá</a></li>:<li><a onClick={reportHandle}>Report</a></li>}
+                        
+                        <li><a>Develope later</a></li>
+                    </ul>
+                </div>
+            </div>
             <p className="font-mono">{post.content}</p>
 
-            {/* <div className={`carousel ${image_display} rounded-box`}>
-                <div className="carousel-item">
-                    <img src="https://daisyui.com/images/stock/photo-1559703248-dcaaec9fab78.jpg" alt="Drink" />
-                </div> 
-                <div className="carousel-item">
-                    <img src="https://daisyui.com/images/stock/photo-1565098772267-60af42b81ef2.jpg" alt="Drink" />
-                </div> 
-                <div className="carousel-item">
-                    <img src="https://daisyui.com/images/stock/photo-1572635148818-ef6fd45eb394.jpg" alt="Drink" />
-                </div> 
-                <div className="carousel-item">
-                    <img src="https://daisyui.com/images/stock/photo-1494253109108-2e30c049369b.jpg" alt="Drink" />
-                </div> 
-                <div className="carousel-item">
-                    <img src="https://daisyui.com/images/stock/photo-1550258987-190a2d41a8ba.jpg" alt="Drink" />
-                </div> 
-                <div className="carousel-item">
-                    <img src="https://daisyui.com/images/stock/photo-1559181567-c3190ca9959b.jpg" alt="Drink" />
-                </div> 
-                <div className="carousel-item">
-                    <img src="https://daisyui.com/images/stock/photo-1601004890684-d8cbf643f5f2.jpg" alt="Drink" />
-                </div>
-            </div> */}
-            {/* <ReactAudioPlayer src={mp3_file} controls autoPlay /> */}
-            <div>
-                <video src={video_file} className="rounded-3xl w-[80%]" controls/>
+            {post.post_media.length!==0 && post.media_type==="Video"?<><div>
+                <video src={`${post.post_media[0].full_url}/${post.post_media[0].media_url}`} className="rounded-3xl w-[896px]" controls type="video/mp4"/>
+                <div id="my-video-player"></div>
+
+            </div></>:
+                <PostMedia post_media={post.post_media}/>
+            }
+            <br/>
+            <div className="flex justify-around">
+                <span>{post.count_likes}
+                <i className="fa-solid fa-thumbs-up text-blue-700"></i>
+                </span>
+                <div>.</div>
+                <span>
+                    {post.count_comments}
+                    <i className="fa-solid fa-comment" style={{color:'white', fontSize:'20px'}}></i>
+                </span>
             </div>
-            <div className="flex justify-evenly w-[80%]">
+            <hr className="pb-4"/>
+            <div className="flex justify-evenly w-[896px] border-r-amber-200">
                 <button className="btn" onClick={likeHandle}>
-                    <i className="fa-solid fa-thumbs-up" style={{color:`${isLiked?"blue":"white"}`, fontSize:'24px'}}></i>
+                    <i className="fa-solid fa-thumbs-up" style={{color:`${isLiked?"blue":"white"}`, fontSize:'20px'}}></i> <span style={{color:`${isLiked?"blue":"white"}`}}>Like</span>
                 </button>
                 <div className="btn" onClick={()=>document.getElementById(`modal_${post.id}`).showModal()}>
-                <i className="fa-solid fa-comment" style={{color:'white', fontSize:'24px'}}></i>
+                <i className="fa-solid fa-comment" style={{color:'white', fontSize:'20px'}}></i>
                     <dialog id={`modal_${post.id}`} className="modal">
                         <PostDetail post={post}/>
                     </dialog>
+                    Comment
                 </div>
-                <button className="btn" style={{color:'white', fontSize:'24px'}}>
-                <i className="fa-regular fa-share-from-square"></i>
+                <button className="btn" >
+                <i className="fa-regular fa-share-from-square" style={{color:'white', fontSize:'20px'}}></i> Share
                 </button>
             </div>
         </>

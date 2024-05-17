@@ -3,7 +3,7 @@ from django.db.models import Q
 from rest_framework import viewsets, generics, status, parsers, permissions
 from rest_framework.decorators import action
 from rest_framework.views import Response
-from social_media.models import User, Post, Comment, Like, ReplyComment, UserFollowing, ChatGroup, UserGroupChat, Message, PostMedia
+from social_media.models import User, Post, Comment, Like, ReplyComment, UserFollowing, Notification, ChatGroup, UserGroupChat, Message, PostMedia
 from social_media import serializers, paginators, perms
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -42,14 +42,15 @@ class PostViewSet(viewsets.ModelViewSet):
             comments = self.get_object().comment_set.filter(active=True)
 
             return Response(serializers.CommentSerializer(comments, many=True).data, status=status.HTTP_200_OK)
-
-        c = Comment.objects.create(user=request.user, post=self.get_object(), content=request.data.get('content'))
+        print(request.data)
+        c = Comment.objects.create(user=request.user, post=self.get_object(), content=request.data['content'])
         return Response(serializers.CommentSerializer(c).data, status=status.HTTP_201_CREATED)
 
     @action(methods=['POST'], url_path='likes', detail=True)
     def like(self, request, pk):
-        like, created = Like.objects.update_or_create(user=request.user, post=self.get_object())
+        like, like_created = Like.objects.update_or_create(user=request.user, post=self.get_object())
         like.active = not like.active
+        #noti, noti_created = Notification.objects.update_or_create(post=self.get_object(), count=, seen=true) # set seen ỗi lần chủ bài viết đi vào xem bài viết đó        if like.active:
         if like.active:
             channel_layer = get_channel_layer()
             message = {
@@ -62,6 +63,14 @@ class PostViewSet(viewsets.ModelViewSet):
         like.save()
 
         return Response(serializers.PostDetailSerializer(self.get_object(), context={'request': request}).data, status=status.HTTP_200_OK)
+
+    @action(methods=['POST'], url_path='report', detail=True)
+    def report(self, request, pk):
+        p = self.get_object()
+        p.status = 'Reported'
+        p.save()
+        return Response(status=status.HTTP_200_OK)
+
 
 
 class UserViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.RetrieveAPIView):
@@ -109,19 +118,17 @@ class CommentViewSet(viewsets.ViewSet, generics.DestroyAPIView, generics.UpdateA
     permission_classes = [permissions.AllowAny]
 
     def get_permissions(self):
-        if self.request in ['Delete', 'Update']:
-            return [perms.OwnerAuthenticated]
-        return [permissions.AllowAny]
+        if self.request in ['delete', 'update', 'partial_update']:
+            return [perms.OwnerAuthenticated()]
+        return [permissions.IsAuthenticated()]
 
-    @action(methods=['GET'], detail=True)
+    @action(methods=['GET', 'POST'], url_path='replies', detail=True)
     def replies(self, request, pk):
-        replies = self.get_object().reply_comment_set.filter(active=True).order_by('created_date')
+        if request.method == 'GET':
+            replies = self.get_object().replycomment_set.filter(active=True).order_by('created_date')
 
-        return Response(serializers.CommentSerializer(replies, many=True).data, status=status.HTTP_200_OK)
-
-    @action(methods=['POST'], url_path='replies', detail=True) #detail = True se co pk
-    def add_replies(self, request, pk):
-        c = ReplyComment.objects.create(user=request.user, comment=self.get_object(), content=request.data.get('content'))
+            return Response(serializers.ReplyCommentSerializer(replies, many=True).data, status=status.HTTP_200_OK)
+        c = ReplyComment.objects.create(user=request.user, parent=self.get_object(), content=request.data.get('content'))
         return Response(serializers.ReplyCommentSerializer(c).data, status=status.HTTP_201_CREATED)
 
 
@@ -132,7 +139,7 @@ class GroupChatViewSet(viewsets.ViewSet, generics.CreateAPIView, generics.Retrie
 
     def list(self, request, *args, **kwargs):
         groups = request.user.chat_groups.all()
-        return Response(serializers.ChatGroupSerializer(groups, many=True).data)
+        return Response(serializers.ChatGroupSerializer(groups, many=True, context={"request":request}).data)
 
     @action(methods=['GET', 'POST'], url_path='messages', detail=True) #detail = True se co pk
     def messages(self, request, pk):
