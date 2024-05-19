@@ -89,6 +89,7 @@ class Notification(BaseModel):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, null=False)
     count = models.IntegerField(default=0)
     content = models.CharField(max_length=100)
+    seen = models.BooleanField(default=False)
     
 
 class ChatGroup(models.Model):

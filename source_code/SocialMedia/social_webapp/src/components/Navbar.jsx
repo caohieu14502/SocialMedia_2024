@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { UserAuth } from "../context/AuthContext"
 import { useNavigate } from "react-router-dom";
+import { authApis, endpoints } from "../configs/Apis";
 
 const Navbar = () => {
     const [keyword, setKeyword] = useState("");
     const {user, dispatch} = UserAuth();
+    const [notis, setNotis] = useState(null)
     const nav = useNavigate();
     const handleLogout = async () => {
       try {
@@ -18,6 +20,18 @@ const Navbar = () => {
         console.log(err)
       }
     }
+    useEffect(()=> {
+      const loadNotis = async () => {
+        try {
+          let res = await authApis().get(endpoints['notifies']);
+          setNotis(res.data);
+          console.log(notis)
+        } catch (ex) {
+          console.error(ex);
+      }
+      }
+      loadNotis();
+    }, [])
 
     const searchHandle = (e) => {
       e.preventDefault()

@@ -1,5 +1,5 @@
 from django.db.models import Count, Q
-from social_media.models import User, Post, Comment, ReplyComment, PostMedia, Message, UserGroupChat, ChatGroup, UserFollowing
+from social_media.models import User, Post, Comment, ReplyComment, PostMedia, Message, Notification, UserGroupChat, ChatGroup, UserFollowing
 from rest_framework import serializers
 from social_media_project.settings import CLOUDINARY_ROOT_URL
 
@@ -220,3 +220,9 @@ class MessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Message
         fields = ['id', 'content', 'user_group', 'created_date', 'user']
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = '__all__'

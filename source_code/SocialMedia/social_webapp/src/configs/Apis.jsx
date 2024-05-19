@@ -15,7 +15,8 @@ export const endpoints = {
     'profile': (userId) => `/users/${userId}/`,
     'follow': (userId) => `/users/${userId}/follow/`,
     'userPosts': (userId) => `/users/${userId}/posts/`,
-    'users': '/users/'
+    'users': '/users/',
+    'notifies': '/notifies/'
 }
 
 export const authApis = () => {

@@ -72,7 +72,6 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
 
-
 class UserViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.RetrieveAPIView):
     queryset = User.objects.filter(is_active=True).all()
     serializer_class = serializers.UserSerializer
@@ -166,3 +165,14 @@ class MessageViewSet(viewsets.ViewSet, generics.DestroyAPIView, generics.UpdateA
     queryset = Message.objects.all()
     serializer_class = serializers.MessageSerializer
     permission_classes = [perms.OwnerAuthenticated]
+
+
+class NotificationViewSet(viewsets.ViewSet, generics.ListCreateAPIView):
+    queryset = Notification.objects.all()
+    serializer_class = serializers.NotificationSerializer
+
+    def get_queryset(self):
+        queries = self.queryset
+        if self.request.user:
+            queries.filter(post__user=self.request.user)
+        return queries
