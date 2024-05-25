@@ -24,7 +24,7 @@ const Chat = () => {
                 user.id
               ]
             });
-            setGroupChat(<ChatRoom id={res.data.id}/>)
+            setGroupChat({groupChat: <ChatRoom id={res.data.id} key={res.data.id}/>})
             setReload(true)
           }
       } catch (ex) {
@@ -36,7 +36,13 @@ const Chat = () => {
   }, [reload])
 
   const chatbox_handle = (id) => {
-    setGroupChat(<ChatRoom id={id}/>)
+    console.log('running')
+    if(groupChat !== null) {
+      console.log('gc khac null')
+      setGroupChat(null)
+    }
+    console.log(groupChat)
+    setGroupChat({groupChat: <ChatRoom id={id} key={id}/>})
   }
 
   if(groupChats === null) return <span className="loading loading-ring loading-md"></span>
@@ -46,10 +52,10 @@ const Chat = () => {
       <div className="flex h-full overflow-hidden">
         <ul className="menu bg-base-200 w-56 rounded-box block h-full">
         {groupChats.map((f, index) => {
-              return(<li key={index} onClick={()=>chatbox_handle(f.id)}><a>{f.name==='Duo'?f.members_info.username:f.name}</a></li>)
+              return(<li key={f.id} onClick={()=>chatbox_handle(f.id)}><a>{f.name==='Duo'?f.members_info.username:f.name}</a></li>)
             })}
         </ul>
-        {groupChat===null?"Chọn 1 người để nhắn tin":groupChat}
+        {groupChat===null?"Chọn 1 người để nhắn tin":groupChat['groupChat']}
       </div>
     </>
   )

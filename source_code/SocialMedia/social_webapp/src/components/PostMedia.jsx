@@ -3,7 +3,7 @@ import LightGallery from 'lightgallery/react';
 import lgZoom from 'lightgallery/plugins/zoom';
 import lgThumbnail from 'lightgallery/plugins/thumbnail';
 
-export const PostMedia = ({post_media}) => {
+export const PostMedia = ({post_media, class_name}) => {
     const lightGalleryRef = useRef(null);
     const containerRef = useRef(null);
     const [galleryContainer, setGalleryContainer] = useState(null);
@@ -47,7 +47,7 @@ export const PostMedia = ({post_media}) => {
 
     return (
         <div className="App">
-            <div style={{ height: '800px' }} ref={containerRef}></div>
+            <div style={{ height: class_name?'600px':'800px' }} ref={containerRef}></div>
             <LightGallery
                 className='w-[80%]'
                 container={galleryContainer}

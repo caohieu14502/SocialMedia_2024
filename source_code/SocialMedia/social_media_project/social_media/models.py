@@ -69,7 +69,6 @@ class Comment(Interaction):
     status = models.CharField(null=True, max_length=50)
 
 
-
 class ReplyComment(Interaction):
     content = models.TextField(null=False)
     parent = models.ForeignKey(Comment, on_delete=models.CASCADE, null=False)
@@ -90,6 +89,9 @@ class Notification(BaseModel):
     count = models.IntegerField(default=0)
     content = models.CharField(max_length=100)
     seen = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['seen', '-update_date']
     
 
 class ChatGroup(models.Model):

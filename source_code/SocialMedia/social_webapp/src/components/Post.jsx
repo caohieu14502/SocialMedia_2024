@@ -1,10 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import ReactAudioPlayer from "react-audio-player"
-import mp3_file from "../assets/audios/coduyenkhongno.mp3"
-import video_file from "../assets/videos/react1.mp4"
 import { useState } from "react"
-import ws, { ws_endpoints } from "../configs/Sockets"
 import { PostDetail } from "./PostDetail"
 import { authApis, endpoints } from "../configs/Apis"
 import Moment from 'react-moment';
@@ -14,7 +10,15 @@ const Post = ({post, user, deleteHandle}) => {
     const [isLiked, setIsLiked] = useState(post.liked)
 
     const reportHandle = async () => {
-        console.log('Oke')
+        let status = prompt("Nêu lý do vì sao");
+        let form = new FormData()
+        form.append('status', status)
+        let res= await authApis().post(endpoints['report'](post.id),
+            form
+        );
+        if (res.status === 200) {
+            alert("Đã báo cáo thành công!");
+        }
     }
     const likeHandle = () => {
         const process = async () => {
@@ -22,7 +26,9 @@ const Post = ({post, user, deleteHandle}) => {
                 let res= await authApis().post(endpoints['like'](post.id), {
                     "post": post.id
                 });
-                if (res.status === 200) setIsLiked(!isLiked)
+                if (res.status === 200) {
+                    setIsLiked(!isLiked)
+                }
             } catch (ex) {
                 console.log(ex)
             }
@@ -54,7 +60,11 @@ const Post = ({post, user, deleteHandle}) => {
                 <div className="dropdown dropdown-bottom dropdown-end absolute right-0 bottom-0 z-10">
                     <div tabIndex={0} role="button" className="btn m-1">...</div>
                     <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                        {post.user.id===user.id?<li><a onClick={deleteHandle}>Xoá</a></li>:<li><a onClick={reportHandle}>Report</a></li>}
+                        {post.user.id===user.id?<li><a onClick={deleteHandle}>Xoá</a></li>:
+                        <li>
+                            <a onClick={reportHandle}>Report</a>
+                        </li>
+                        }
                         
                         <li><a>Develope later</a></li>
                     </ul>
@@ -71,13 +81,13 @@ const Post = ({post, user, deleteHandle}) => {
             }
             <br/>
             <div className="flex justify-around">
-                <span>{post.count_likes}
-                <i className="fa-solid fa-thumbs-up text-blue-700"></i>
+                <span>{isLiked?`Bạn và ${post.count_likes-1} người`:`${post.count_likes} người`}
+                <i className="fa-solid fa-thumbs-up text-blue-700 pl-2"></i>
                 </span>
                 <div>.</div>
                 <span>
-                    {post.count_comments}
-                    <i className="fa-solid fa-comment" style={{color:'white', fontSize:'20px'}}></i>
+                    {`${post.count_comments} người`}
+                    <i className="fa-solid fa-comment pl-2" style={{color:'white', fontSize:'20px'}}></i>
                 </span>
             </div>
             <hr className="pb-4"/>

@@ -1,22 +1,27 @@
-/* eslint-disable react/prop-types */
 import { useEffect, useState } from "react"
-import  {Comment} from "./Comment"
 import { authApis, endpoints } from "../configs/Apis";
-import PostMedia from "./PostMedia";
+import { useLocation, useParams } from "react-router-dom";
+import { Comment } from "../components/Comment";
+import PostMedia from "../components/PostMedia";
 
-export const PostDetail = ({post}) => {
+const PostDetail = () => {
+    const params= useParams()
+    const location = useLocation()
+    const [post, setPost] = useState(null)
     const [comments, setComments] = useState([]);
     const [content, setContent] = useState("")
 
     useEffect(() => {
 
-        const loadComments = async () => {
-            let { data } = await authApis().get(endpoints['comments'](post.id));
+        const loadPost = async () => {
+            let res = await authApis().get(endpoints['postDetails'](params.postId));
+            await setPost(res.data);
+            let { data } = await authApis().get(endpoints['comments'](res.data.id));
             setComments(data);
         }
 
-        loadComments();
-    }, []);
+        loadPost();
+    }, [location]);
 
     const comment_handle = () => {
         const process = async () => {
@@ -36,13 +41,14 @@ export const PostDetail = ({post}) => {
         process();
     }
     
+
+
+    if(post===null) return'Loading'
+
     return(
         <>
-        <div className="modal-box cursor-default w-11/12 max-w-5xl h-5/6">
-                <form method="dialog">
-                {/* if there is a button in form, it will close the modal */}
-                <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-                </form>
+        {/* You can open the modal using document.getElementById('ID').showModal() method */}
+        <div className="mx-auto w-[90%] mt-24">
             <div className="flex flex-row max-w-full max-h-full">
                 <div className="basis-1/2 flex justify-center h-[572px] items-center flex-initial">
                     <div className="w-full">
@@ -53,6 +59,16 @@ export const PostDetail = ({post}) => {
                     </div></>:
                         <PostMedia post_media={post.post_media} class_name='yess'/>
                     }
+                    <div className="flex justify-around">
+                        <span>{post.liked?`Bạn và ${post.count_likes - 1} người`:`${post.count_likes} người`}
+                        <i className="fa-solid fa-thumbs-up text-blue-700 pl-2"></i>
+                        </span>
+                        <div>.</div>
+                        <span>
+                            {`${post.count_comments} người`}
+                            <i className="fa-solid fa-comment pl-2" style={{color:'white', fontSize:'20px'}}></i>
+                        </span>
+                    </div>
                     </div>
                 </div>
                 <div className="basis-1/2 ml-4">
@@ -101,3 +117,5 @@ export const PostDetail = ({post}) => {
         </>
     )
 }
+
+export default PostDetail

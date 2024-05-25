@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import { useLocation, useNavigate, useParams } from "react-router-dom"
 import { authApis, endpoints } from "../configs/Apis"
 import Post from "../components/Post"
 import { UserAuth } from "../context/AuthContext"
@@ -9,6 +9,7 @@ const Profile = () => {
     const [userProfile, setUserProfile] = useState(null)
     const [posts, setPosts] = useState([])
     const params = useParams()
+    const location = useLocation()
     const nav = useNavigate()
 
     useEffect(()=>{
@@ -24,7 +25,7 @@ const Profile = () => {
       }
     
         process();
-    }, [])
+    }, [location])
 
     const followHandle = () => {
         const process = async () => {
@@ -44,7 +45,7 @@ const Profile = () => {
         process();
     }
     const posts_view = posts.map((p, index) =>{
-        return(<Post key={p.id} style={1} post={p} />);
+        return(<Post key={p.id} style={1} post={p} user={user} />);
     })
 
     const mesHandle = () => {

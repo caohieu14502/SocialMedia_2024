@@ -4,6 +4,7 @@ import { authApis, endpoints } from "../configs/Apis";
 import { CreatePost } from "../components/CreatePost";
 import { UserAuth } from "../context/AuthContext";
 import InfiniteScroll from "react-infinite-scroll-component";
+import Advert from "../components/Advert";
 
 const Home = () => {
   const {user, } = UserAuth();
@@ -47,6 +48,7 @@ const Home = () => {
     endPage.current.scrollIntoView({behavior: "smooth"})
   }
 
+
   useEffect(scrollToBottom, [isBottom])
   
   if(posts.length === 0) 
@@ -60,6 +62,7 @@ const Home = () => {
   return (
     <>
     <div className="px-2 containerWrap flex justify-items-center w-[60%] mt-5">
+      <Advert/>
       <div className="avatar">
         <div className="w-12 rounded-full">
           <img src={user.avatar_url} />

@@ -16,7 +16,9 @@ export const endpoints = {
     'follow': (userId) => `/users/${userId}/follow/`,
     'userPosts': (userId) => `/users/${userId}/posts/`,
     'users': '/users/',
-    'notifies': '/notifies/'
+    'notifies': '/notifies/',
+    'notifyDetail': (notiId) => `/notifies/${notiId}/`,
+    'report': (postId) => `/posts/${postId}/report/`,
 }
 
 export const authApis = () => {

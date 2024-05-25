@@ -13,10 +13,11 @@ import Searching from "./pages/Searching"
 import 'lightgallery/css/lightgallery.css';
 import 'lightgallery/css/lg-zoom.css';
 import 'lightgallery/css/lg-thumbnail.css';
+import PostDetail from "./pages/PostDetail"
+import Report from "./pages/Report"
 
 
 function App() {
-
 
     return (
       <AuthProvider>
@@ -27,10 +28,11 @@ function App() {
               </ProtectedRoute>
             }> 
               <Route path="" element={<Home />} />
-              <Route path="/posts/:postId" element={<Home />} />
+              <Route path="/posts/:postId" element={<PostDetail />} />
               <Route path="/chat" element={ <Chat/> } />
               <Route path="/searching" element={ <Searching /> } />
               <Route path="/testing" element={ <MyComponent/> } />
+              <Route path="/report" element={ <Report/> } />
               <Route path="/profile/:userId" element={ <Profile/> } />
             </Route>
           <Route path="/login" element={

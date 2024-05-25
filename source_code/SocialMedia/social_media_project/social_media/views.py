@@ -19,12 +19,17 @@ class PostViewSet(viewsets.ModelViewSet):
         queries = self.queryset
 
         kw = self.request.query_params.get("kw")
+        status = self.request.query_params.get("status")
+        if status and self.request.user.is_superuser:
+            queries = queries.filter(status__isnull=False)
+            return queries
+
         if kw:
             queries = queries.filter(Q(content__icontains=kw) | Q(tags__name__icontains=kw))
-        elif not self.request.user.is_anonymous:
+        elif self.action == 'list':
             uf = UserFollowing.objects.filter(follower=self.request.user)
             following = User.objects.filter(following__in=uf)
-            queries.filter(user__in=following)
+            queries = queries.filter(Q(user__in=following) | Q(user=self.request.user))
 
         return queries
 
@@ -50,7 +55,7 @@ class PostViewSet(viewsets.ModelViewSet):
     def like(self, request, pk):
         like, like_created = Like.objects.update_or_create(user=request.user, post=self.get_object())
         like.active = not like.active
-        #noti, noti_created = Notification.objects.update_or_create(post=self.get_object(), count=, seen=true) # set seen ỗi lần chủ bài viết đi vào xem bài viết đó        if like.active:
+
         if like.active:
             channel_layer = get_channel_layer()
             message = {
@@ -61,13 +66,26 @@ class PostViewSet(viewsets.ModelViewSet):
                 "type": "notify_message",
                 "message": message})
         like.save()
+        likes_count = Like.objects.filter(post=self.get_object(), active=True).distinct().count()
+        comments_count = Comment.objects.filter(post=self.get_object()).distinct().count()
+        noti, noti_created = Notification.objects.update_or_create(post=self.get_object()) # set seen ỗi lần chủ bài viết đi vào xem bài viết đó        if like.active:
+        noti.count = likes_count + comments_count
+        noti.seen = False
+        noti.save()
 
         return Response(serializers.PostDetailSerializer(self.get_object(), context={'request': request}).data, status=status.HTTP_200_OK)
 
     @action(methods=['POST'], url_path='report', detail=True)
     def report(self, request, pk):
         p = self.get_object()
-        p.status = 'Reported'
+        try:
+            p.status = request.data['status']
+        except:
+            if request.user.is_superuser:
+                if request.data['desc'] == 'Del':
+                    p.active = False
+                elif request.data['desc'] == 'Skip':
+                    p.status = None
         p.save()
         return Response(status=status.HTTP_200_OK)
 
@@ -167,12 +185,9 @@ class MessageViewSet(viewsets.ViewSet, generics.DestroyAPIView, generics.UpdateA
     permission_classes = [perms.OwnerAuthenticated]
 
 
-class NotificationViewSet(viewsets.ViewSet, generics.ListCreateAPIView):
+class NotificationViewSet(viewsets.ViewSet, generics.ListCreateAPIView, generics.UpdateAPIView):
     queryset = Notification.objects.all()
     serializer_class = serializers.NotificationSerializer
 
     def get_queryset(self):
-        queries = self.queryset
-        if self.request.user:
-            queries.filter(post__user=self.request.user)
-        return queries
+        return self.queryset.filter(post__user__id=self.request.user.id)

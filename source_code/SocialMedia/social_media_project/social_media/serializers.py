@@ -93,7 +93,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['id', 'content', 'user', 'created_date', 'media_type', 'uploaded_images', 'post_media']
+        fields = ['id', 'content', 'user', 'created_date', 'media_type', 'uploaded_images', 'post_media', 'status']
         extra_kwargs = {
             'user': {
                 'read_only': True
@@ -222,7 +222,16 @@ class MessageSerializer(serializers.ModelSerializer):
         fields = ['id', 'content', 'user_group', 'created_date', 'user']
 
 
+class PostNotiSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ['id', 'content']
+
+
 class NotificationSerializer(serializers.ModelSerializer):
+    post = PostNotiSerializer()
+
     class Meta:
         model = Notification
-        fields = '__all__'
+        fields = ['id', 'post', 'seen', 'count']
+
