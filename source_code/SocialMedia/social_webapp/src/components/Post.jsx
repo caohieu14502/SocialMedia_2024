@@ -5,9 +5,11 @@ import { PostDetail } from "./PostDetail"
 import { authApis, endpoints } from "../configs/Apis"
 import Moment from 'react-moment';
 import PostMedia from "./PostMedia"
+import { useNavigate } from "react-router-dom";
 
 const Post = ({post, user, deleteHandle}) => {
     const [isLiked, setIsLiked] = useState(post.liked)
+    const nav = useNavigate()
 
     const reportHandle = async () => {
         let status = prompt("Nêu lý do vì sao");
@@ -48,7 +50,7 @@ const Post = ({post, user, deleteHandle}) => {
                     </div>
                 </div>
                 <div className="chat-header">
-                    {post.user.username}
+                    <a className="link link-hover" onClick={()=>nav(`/profile/${post.user.id}`)}>{post.user.username}</a>
                 </div>
                 <time className="text-s opacity-50">
                     <Moment fromNow >

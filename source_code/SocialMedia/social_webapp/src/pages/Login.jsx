@@ -83,9 +83,11 @@ const Login = () => {
                     <span className="label-text">Password</span>
                   </label>
                   <input type="password" placeholder="password" className="input input-bordered" required value={password} onChange={e => setPassword(e.target.value)} />
-                  <label className="label">
-                    <a href="#" className="label-text-alt link link-hover">Forgot password?</a>
-                  </label>
+                  <div className="flex justify-end">
+                    <label className="label">
+                      <a onClick={()=>nav('/register')} className="label-text-alt link link-hover">Register?</a>
+                    </label>
+                  </div>
                 </div>
                 <div className="form-control mt-6 flex justify-center">
                   {loading===true?<span className="loading loading-ring loading-md"></span>:<button className="btn btn-primary">Login</button>}

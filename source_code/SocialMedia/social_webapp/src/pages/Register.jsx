@@ -48,6 +48,10 @@ const Register = () => {
 						{err}
 					</div>
 				)}
+                <h4 className="text-3xl font-bold text-center">Register</h4>
+                <div className="flex justify-end">
+                    <button onClick={()=>nav('/login')} className="btn max-w-16">Login?</button>
+                </div>
                 <form className="card-body" onSubmit={register}>
                     <div className="form-control">
                         <label className="label">
